@@ -1,6 +1,8 @@
 import random
 import streamlit as st
+from logic_utils import check_guess
 
+# FIX THIS - The difficulty levels have inconsistent ranges. We should adjuste them to refelct the difficulty better.
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
         return 1, 20
@@ -11,13 +13,14 @@ def get_range_for_difficulty(difficulty: str):
     return 1, 100
 
 
+# FIX THIS - The guess parsing should be in logic_utils.py
 def parse_guess(raw: str):
     if raw is None:
         return False, None, "Enter a guess."
 
     if raw == "":
         return False, None, "Enter a guess."
-
+    # FIX THIS - We should not allow decimal guesses. The game depends on whole numbers.
     try:
         if "." in raw:
             value = int(float(raw))
@@ -29,25 +32,10 @@ def parse_guess(raw: str):
     return True, value, None
 
 
-def check_guess(guess, secret):
-    if guess == secret:
-        return "Win", "🎉 Correct!"
 
-    try:
-        if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
-        else:
-            return "Too Low", "📉 Go LOWER!"
-    except TypeError:
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
-
-
+# FIX THIS - score updating should be in logic_utils.py
 def update_score(current_score: int, outcome: str, attempt_number: int):
+    # FIX THIS - the scoring system is inconsistent and can even result in negative points for winning on later attempts, which is not a good user experience.
     if outcome == "Win":
         points = 100 - 10 * (attempt_number + 1)
         if points < 10:
@@ -55,6 +43,7 @@ def update_score(current_score: int, outcome: str, attempt_number: int):
         return current_score + points
 
     if outcome == "Too High":
+        # FIX THIS - This appears to be a purpose made glitch where the player is rewarded for incorrect guesses on even attempts and penalized on odd attempts.
         if attempt_number % 2 == 0:
             return current_score + 5
         return current_score - 5
@@ -77,6 +66,7 @@ difficulty = st.sidebar.selectbox(
     index=1,
 )
 
+# FIX THIS - the attempt limits are not consistent with the difficulty levels.
 attempt_limit_map = {
     "Easy": 6,
     "Normal": 8,
@@ -92,6 +82,7 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
+# FIX THIS - The game should start with 0 attempts, not 1, otherwise the player is penalized before their first guess.
 if "attempts" not in st.session_state:
     st.session_state.attempts = 1
 
@@ -106,6 +97,7 @@ if "history" not in st.session_state:
 
 st.subheader("Make a guess")
 
+# FIX THIS - The instructions should reflect the actual range based on the difficulty level.
 st.info(
     f"Guess a number between 1 and 100. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
@@ -131,12 +123,16 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+# FIX THIS - The difficulty is not reflected in the new_game button.
+# FIX THIS - The new game button does not reset score.
+# FIX THIS - The secret number does not reflect the difficulty level when starting a new game.
 if new_game:
     st.session_state.attempts = 0
     st.session_state.secret = random.randint(1, 100)
     st.success("New game started.")
     st.rerun()
 
+# FIX THIS - The game does not properly handle the case where the player has already won or lost.
 if st.session_state.status != "playing":
     if st.session_state.status == "won":
         st.success("You already won. Start a new game to play again.")
@@ -144,7 +140,9 @@ if st.session_state.status != "playing":
         st.error("Game over. Start a new game to try again.")
     st.stop()
 
+# FIX THIS - Need to rerun() after submitting a guess to update the UI with the new state, otherwise the user won't see the results of their guess until they interact with the app in a different way.
 if submit:
+    # FIX THIS - We should parse the guess before incrementing attempts, otherwise invalid guesses are penalized.
     st.session_state.attempts += 1
 
     ok, guess_int, err = parse_guess(raw_guess)
@@ -155,6 +153,7 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
+        # FIX THIS - This appears to be a purpose made glitch where the secret is sometimes a string and sometimes an int depending on the attemtps.
         if st.session_state.attempts % 2 == 0:
             secret = str(st.session_state.secret)
         else:
@@ -162,6 +161,7 @@ if submit:
 
         outcome, message = check_guess(guess_int, secret)
 
+        # FIX THIS - There should be feedback even if hint is not enabled, otherwise the user has no other feedback to show that it was a successful guess.
         if show_hint:
             st.warning(message)
 
