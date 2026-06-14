@@ -15,26 +15,26 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 
 Document at least 3 bugs you found. Add rows as needed.
 
-| Input | Expected Behavior | Actual Behavior | Console Output / Error |
-|-------|-------------------|-----------------|------------------------|
-| Dificulty change | New Game | Game State stays the same | None |
-| Any user input above or below the secret | If input is below, the hint should be "Go higher" vice versa if input is above, the hint should be "Go lower" | If input is below, the hint is "Go lower" vice versa if input is above, the hint is "Go higher" | None |
-| Number of attempts | The attempts should reflect the same amount of attempts as listed in the difficulty information | The actual attempts after testing are lower than the listed attempts by exactly 1 | None |
-| String as user input | Do not use an attempt, give error feedback. | Uses up an attempt, gives error feedback | None |
-| 45.7 as user input when secret is 45 | Do not use attempt, give error feedback | Correct guess, game completed | None |
-| New game Button press when state is "Game Over" or "Game Won" | Reset state to "New Game", give feedback that new game has started | Does not reset state, and gives no feedback | None |
-| No input when pressing submit guess | Do not use attempt, give error feedback | Uses attempt, gives error feedback | None |
-| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None |
-| Difficulty Balance | The scale of difficulty should increase in contrast to the level, easy -> normal -> hard | The normal difficulty is harder than the hard difficulty seeing as the amount of numbers guessable are double | None |
+| Input | Expected Behavior | Actual Behavior | Console Output / Error | Resolved? | Test? |
+|-------|-------------------|-----------------|------------------------|-----------|-------|
+| Dificulty change | New Game | Game State stays the same | None | ◼️ | ◼️ |
+| Any user input above or below the secret | If input is below, the hint should be "Go higher" vice versa if input is above, the hint should be "Go lower" | If input is below, the hint is "Go lower" vice versa if input is above, the hint is "Go higher" | None | ✅ | ✅ - pytest |
+| Number of attempts | The attempts should reflect the same amount of attempts as listed in the difficulty information | The actual attempts after testing are lower than the listed attempts by exactly 1 | None | ✅ | ✅ - Manual Test |
+| String as user input | Do not use an attempt, give error feedback. | Uses up an attempt, gives error feedback | None | ◼️ | ◼️ |
+| 45.7 as user input when secret is 45 | Do not use attempt, give error feedback | Correct guess, game completed | None | ◼️ | ◼️ |
+| New game Button press when state is "Game Over" or "Game Won" | Reset state to "New Game", give feedback that new game has started | Does not reset state, and gives no feedback | None | ◼️ | ◼️ |
+| No input when pressing submit guess | Do not use attempt, give error feedback | Uses attempt, gives error feedback | None | ◼️ | ◼️ |
+| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None | ◼️ | ◼️ |
+| Difficulty Balance | The scale of difficulty should increase in contrast to the level, easy -> normal -> hard | The normal difficulty is harder than the hard difficulty seeing as the amount of numbers guessable are double | None | ✅ | ✅ - Manual Test |
 
 ---
 
 ## 2. How did you use AI as a teammate?
 
 - Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
-  - Claude code was used for this project.
+  - Claude code was used in plan/Ask before edits mode for this project.
 - Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-  - Answer.
+  - Claude correctly saw the flaw of inverted messages in the check_guess function and that the actual result was correct, but the message was incorrect. It suggested to swap the messages, and I approved the swap. Upon manual testing of the game I was able to see that the game correctly gives Go HIGHER! and Go LOWER messages. After manual testing, I followed the guide to have claude help me come up with pytest assertions to make sure the logic works correctly in the check_guess function. Claude came up with 10 tests to make sure that the logic returns the correct message and results for edge cases and normal cases. On the first run through Claude caught a TypeError caused by a difference in comparing strings to ints, and we came up with a resolution to fix it by casting the guess and the secret to int in order to make sure the results correctly reflect the numbers given to check_guess. check_guess now passes all assertions and I can run it after refactors to make sure that the function is still working as inteneded to avoid future headaches.
 - Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
   - Answer.
 
@@ -43,12 +43,12 @@ Document at least 3 bugs you found. Add rows as needed.
 ## 3. Debugging and testing your fixes
 
 - How did you decide whether a bug was really fixed?
-  - Answer.
+  - After fixing a bug, I review the logic flow first to make sure it makes sense, and then I test the actual game in the browser to make sure that the bug is no longer reproduced by testing the conditions that cause the bug in the first place. When a bug is a main part of how the game works, such as functions that are in logic_utils.py, I get help from Claude to come up with pytest assertions to run and make sure the functions work as intended as well.
 - Describe at least one test you ran (manual or using pytest)  
   and what it showed you about your code.
-  - Answer.
+  - One significant pytest that was run was when fixing the high/low bug on check_guess. When asserting that 5 is a lower guess than "30" the result was actually the opposite since inputting 5 > "30" results in true due to the guess being cast to a string, causing a lexicographic comparison to happen rather than a numerical comparison. This showed that there was a second bug within check_guess due to casting to str instead of int when there is a TypeError when comparing guess to secret.
 - Did AI help you design or understand any tests? How?
-  - Answer.
+  - Yes, Claude helped design the assertions for check_guess to make sure the output of the message and results are accurate and that the TypeError is handled gracefully. Claude wrote the tests and I reviewed and tested them by running the tests and also manually testing the game to make sure that the game was working correctly. Claude also explained the TypeError thrown upon the first test run, and I learned about lexicographic comparison vs numerical comparison, and that making sure to cast to integers will result in more accurate logic since lexicographic comparison will sometimes come up True when a numerical comparison would output False.
 
 ---
 
@@ -69,8 +69,14 @@ Document at least 3 bugs you found. Add rows as needed.
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
   - Answer.
 
-## Reflect: All prompts that were used in this project:
-| Prompt | Result |
-| I am working on debugging a guessing game that is written with python, and is running through streamlit. The first bug I would like to tackle is with the check_guess function. The expected behavior is to show the user "Go HIGHER!" when the user inputs a number that is lower than the secret number, and "Go LOWER!" when the user inputs a number that is higher than the secret number. The current output is opposite.
-I would like you to move the check_guess funciton to logic_utils.py, fix the high/low bug, and update the import for app.py. | Result |
-| Prompt | Result |
+## Reflect & Transparancy: All prompts that were used in this project:
+
+| Prompt | Result | Notes |
+|--------|--------|-------|
+| "I am working on debugging a guessing game that is written with python, and is running through streamlit. The first bug I would like to tackle is with the check_guess function. The expected behavior is to show the user "Go HIGHER!" when the user inputs a number that is lower than the secret number, and "Go LOWER!" when the user inputs a number that is higher than the secret number. The current output is opposite. I would like you to move the check_guess funciton to logic_utils.py, fix the high/low bug, and update the import for app.py." | Claude fixed the inverted messages in check_guess, moved check_guess to logic_utils.py, imported check_guess from logic_utils.py to app.py, and removed the old check_guess function in app.py | I reviewed all changes suggested by claude, in ask before edits mode, all fixes were verified and tested working by hand, no pytest yet. |
+| "Alright, now that that bug is fixed, and we have refactored that function into logic_utils, let's make a pytest.py file and write some edge case tests for check_guess so we can make sure the rest of our refactors don't end up causing more bugs for check_guess" | Claude wrote a pytest file with 10 tests to test_check_guess.py and after running tests initially, it found a TypeError bug with check_guess attempting to compare 2 str values and fixed the bug by changing the comparison to an integer comparison by casting to int within check_guess. | I reviewed all changes suggested by claude, in ask before edits mode, all fixes were verified and check_guess has now been tested and asserted using a testing method. I forgot to specify the exact path for the test and will ask claude to refactor the tests into the /tests/test_game_logic.py before making a commit. |
+| "The check_guess tests should be refactored into the tests/test_game_logic.py file so that all of our assertions are in one place for future testing. You can remove the existing test functions from test_game_logic.py" | Claude successfully moved the tests to the test_game_logic.py file and removed the original test file it created. It was also able to note that the original tests would have all failed due to expecting a string return from check_guess where check_guess actually returns a tuple. | I reviewed all changes suggested by claude, in ask before edits mode, all fixes were verified. The check_guess function now performs as expected and will now be verified working through assertions |
+| "The limits and ranges for the 3 difficulties of the game are not in order, I believe there should be less range and more attempts in easier difficulties and a larger range, and less attempts for higher difficulties. For example I propose "Easy" difficulty should keep the range of 1 to 20 but the attempts should be 10 instead of 6." | Claude suggested changing the hard range from 1-50 to 1-200 to increase the difficulty and also increase the 6 attempts in easy to 10 as I suggested. | I reviewed all changes suggested by claude, in ask before edits mode, all fixes made sense logically. The difficulty scale now feels appropriate for each difficulty as tested manually. |
+| "I would like to understand steamlit states better, as it appears that there are multiple state-based bugs within the guessing game. Could you help me understand what could be going wrong when I win a game, and can no longer start a new game, and also why changing the difficulty doesn't seem to reset the states?" | Claude explained streamlit states and how it reruns the entire script from top to bottom on every user interaction and explained a fix for both the new game button, and the difficulty change not changing the state of the game. With help understanding streamlit I applied the fixes in app.py to set the status to "playing" in the new_game function, and added a method to detect if difficulty has changed and reset the state and history to start a new game. | Claude suggested changes to app.py in the form of adding a session_state.status change in new_game block, and adding a method to reset the state when the difficulty is updated. I applied the fixes suggested and tested them in the game manually, both fixes work great and fixed the issues in the game. |
+| "Please refactor get_range_for_difficulty to logic_utils.py" | Claude moved the get_range_for_difficulty function to logic_utils and created the import for app.py | I reviewed all changes before allowing claude to move the function and write the imports. |
+| "" | result | notes |

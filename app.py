@@ -1,16 +1,6 @@
 import random
 import streamlit as st
-from logic_utils import check_guess
-
-# FIX THIS - The difficulty levels have inconsistent ranges. We should adjuste them to refelct the difficulty better.
-def get_range_for_difficulty(difficulty: str):
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100
+from logic_utils import check_guess, get_range_for_difficulty
 
 
 # FIX THIS - The guess parsing should be in logic_utils.py
@@ -30,7 +20,6 @@ def parse_guess(raw: str):
         return False, None, "That is not a number."
 
     return True, value, None
-
 
 
 # FIX THIS - score updating should be in logic_utils.py
@@ -66,9 +55,9 @@ difficulty = st.sidebar.selectbox(
     index=1,
 )
 
-# FIX THIS - the attempt limits are not consistent with the difficulty levels.
+# FIX - Claude adjusted the easy difficulty to have a higher limit, leaving the original attempt limits for normal and hard.
 attempt_limit_map = {
-    "Easy": 6,
+    "Easy": 10,
     "Normal": 8,
     "Hard": 5,
 }
@@ -82,9 +71,9 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
-# FIX THIS - The game should start with 0 attempts, not 1, otherwise the player is penalized before their first guess.
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    # FIX - I set the initial attempts to 0 instead of 1, otherwise the player starts with a penalty.
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -95,11 +84,21 @@ if "status" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# FIX - Fix suggested by Claude: Changing the difficulty will now cause a state update to reset the game so users don't end up with the wrong range or attempts when selecting a different difficulty
+if st.session_state.get("difficulty") != difficulty:
+    st.session_state.difficulty = difficulty
+    st.session_state.secret = random.randint(low, high)
+    st.session_state.attempts = 0
+    st.session_state.score = 0
+    st.session_state.status = "playing"
+    # Reset history when changing difficulty to avoid confusion with previous guesses that may be out of range for the new difficulty level.
+    st.session_state.history = []
+
 st.subheader("Make a guess")
 
-# FIX THIS - The instructions should reflect the actual range based on the difficulty level.
 st.info(
-    f"Guess a number between 1 and 100. "
+    # FIX - I updated the instructions to reflect the actual range based on the difficulty level instead of just 1 - 100
+    f"Guess a number between {low} and {high}. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
 
@@ -123,12 +122,16 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
-# FIX THIS - The difficulty is not reflected in the new_game button.
-# FIX THIS - The new game button does not reset score.
-# FIX THIS - The secret number does not reflect the difficulty level when starting a new game.
 if new_game:
     st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    # FIX - new_game button will now reset the score.
+    st.session_state.score = 0
+    # FIX - new_game button will now reset the history of guesses.
+    st.session_state.history = []
+    # FIX - The secret number now reflects the difficulty level when starting a new game using low and high.
+    st.session_state.secret = random.randint(low, high)
+    # FIX - Claude helped me find a state bug with setting the status to "playing" on new game, which was causing the game to not properly reset after winning or losing.
+    st.session_state.status = "playing";
     st.success("New game started.")
     st.rerun()
 
@@ -188,4 +191,5 @@ if submit:
                 )
 
 st.divider()
-st.caption("Built by an AI that claims this code is production-ready.")
+# Updated the caption to reflect changes made to the game.
+st.caption("Built by an AI that claims this code is production-ready. Bugfixed by a human and Claude code who say we should test that.")
