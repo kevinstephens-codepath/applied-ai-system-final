@@ -1,6 +1,6 @@
 import random
 import streamlit as st
-from logic_utils import check_guess, get_range_for_difficulty
+from logic_utils import check_guess, get_range_for_difficulty, update_score
 
 
 # FIX THIS - The guess parsing should be in logic_utils.py
@@ -22,25 +22,6 @@ def parse_guess(raw: str):
     return True, value, None
 
 
-# FIX THIS - score updating should be in logic_utils.py
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    # FIX THIS - the scoring system is inconsistent and can even result in negative points for winning on later attempts, which is not a good user experience.
-    if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    if outcome == "Too High":
-        # FIX THIS - This appears to be a purpose made glitch where the player is rewarded for incorrect guesses on even attempts and penalized on odd attempts.
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
-
-    if outcome == "Too Low":
-        return current_score - 5
-
-    return current_score
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -168,11 +149,7 @@ if submit:
         if show_hint:
             st.warning(message)
 
-        st.session_state.score = update_score(
-            current_score=st.session_state.score,
-            outcome=outcome,
-            attempt_number=st.session_state.attempts,
-        )
+        st.session_state.score = update_score(attempt_number=st.session_state.attempts)
 
         if outcome == "Win":
             st.balloons()
@@ -192,4 +169,4 @@ if submit:
 
 st.divider()
 # Updated the caption to reflect changes made to the game.
-st.caption("Built by an AI that claims this code is production-ready. Bugfixed by a human and Claude code who say we should test that.")
+st.caption("Built by an AI that claims this code is production-ready. Bugfixed by a human and Claude code who say \"We should test that.\"")

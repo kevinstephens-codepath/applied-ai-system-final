@@ -1,7 +1,7 @@
-from logic_utils import check_guess
+from logic_utils import check_guess, update_score
 
 
-# --- Normal int/int path ---
+# --- check_guess Normal int/int path ---
 
 def test_exact_match_returns_win():
     outcome, message = check_guess(42, 42)
@@ -59,3 +59,21 @@ def test_string_secret_guess_too_high():
     outcome, message = check_guess(80, "30")
     assert outcome == "Too High"
     assert "LOWER" in message
+
+
+# --- update_score tests ---
+
+def test_attempt_1_gives_100():
+    assert update_score(1) == 100
+
+def test_attempt_2_gives_90():
+    assert update_score(2) == 90
+
+def test_attempt_10_gives_10():
+    assert update_score(10) == 10
+
+def test_score_floors_at_10():
+    assert update_score(15) == 10
+
+def test_score_never_negative():
+    assert update_score(9999) >= 0

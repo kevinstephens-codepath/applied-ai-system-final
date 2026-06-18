@@ -17,7 +17,7 @@ def parse_guess(raw: str):
     """
     raise NotImplementedError("Refactor this function from app.py into logic_utils.py")
 
-# FIX - Claude moved the check_guess function from app.py to logic_utils.py and fixed the high/low bug
+# FIX - Claude moved the check_guess function from app.py to logic_utils.py and fixed the high/low bug and also fixed a TypeError bug that occurred when the secret was a string.
 def check_guess(guess, secret):
     """
     Compare guess to secret and return (outcome, message).
@@ -39,7 +39,10 @@ def check_guess(guess, secret):
             return "Too High", "📉 Go LOWER!"
         return "Too Low", "📈 Go HIGHER!"
 
+# FIX - I planned a fix with Claude in plan mode to fix the scoring system. Claude implemented a new scoring formula and 5 tests to validate scores. I verified the tests, and the logic behind Claude's plan before allowing the implementation.
+def update_score(attempt_number: int) -> int:
+    """Return the current score for a given attempt number.
 
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    """Update score based on outcome and attempt number."""
-    raise NotImplementedError("Refactor this function from app.py into logic_utils.py")
+    Starts at 100 for attempt 1, decreases by 10 per attempt, floors at 10.
+    """
+    return max(10, 100 - (attempt_number - 1) * 10)
