@@ -107,7 +107,11 @@ if st.session_state.feedback:
     st.session_state.feedback = None
     feedback_shown = True
     if fb["type"] == "hint":
-        st.warning(fb["message"])
+        # FIX - I added logic for the show hint toggle that Claude forgot/didn't think to add.
+        if show_hint:
+            st.warning(fb["message"])
+        else:
+            st.warning("Incorrect!")
     elif fb["type"] == "win":
         st.balloons()
         st.success(fb["message"])

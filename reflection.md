@@ -24,7 +24,7 @@ Document at least 3 bugs you found. Add rows as needed.
 | 45.7 as user input when secret is 45 | Do not use attempt, give error feedback | Correct guess, game completed | None | ✅ | ✅ - pytest |
 | New game Button press when state is "Game Over" or "Game Won" | Reset state to "New Game", give feedback that new game has started | Does not reset state, and gives no feedback | None | ✅ | ✅ - Manual Test |
 | No input when pressing submit guess | Do not use attempt, give error feedback | Uses attempt, gives error feedback | None | ✅ | ✅ - Manual Test |
-| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None | N/A | N/A |
+| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None | ✅ | ✅ - Manual Test |
 | Difficulty Balance | The scale of difficulty should increase in contrast to the level, easy -> normal -> hard | The normal difficulty is harder than the hard difficulty seeing as the amount of numbers guessable are double | None | ✅ | ✅ - Manual Test |
 | Submiting a guess | Score correctly updates | The score seems to randomly add points or subtract points, and can even go negative. | None | ✅ | ✅ - pytest |
 
