@@ -1,4 +1,48 @@
-from logic_utils import check_guess, update_score
+from logic_utils import check_guess, parse_guess, update_score
+
+
+# --- parse_guess tests ---
+
+def test_parse_guess_valid_integer():
+    ok, value, err = parse_guess("42")
+    assert ok is True
+    assert value == 42
+    assert err is None
+
+
+def test_parse_guess_empty_string():
+    ok, value, err = parse_guess("")
+    assert ok is False
+    assert value is None
+    assert err is not None and "guess" in err.lower()
+
+
+def test_parse_guess_none_input():
+    ok, value, err = parse_guess(None)
+    assert ok is False
+    assert value is None
+    assert err is not None and "guess" in err.lower()
+
+
+def test_parse_guess_non_numeric():
+    ok, value, err = parse_guess("abc")
+    assert ok is False
+    assert value is None
+    assert err is not None and "number" in err.lower()
+
+
+def test_parse_guess_decimal_rejected():
+    ok, value, err = parse_guess("3.5")
+    assert ok is False
+    assert value is None
+    assert err is not None
+
+
+def test_parse_guess_negative_integer():
+    ok, value, err = parse_guess("-7")
+    assert ok is True
+    assert value == -7
+    assert err is None
 
 
 # --- check_guess Normal int/int path ---

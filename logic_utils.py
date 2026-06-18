@@ -1,3 +1,4 @@
+# FIX - Claude moved the get_range_for_difficulty function from app.py to logic_utils.py.
 def get_range_for_difficulty(difficulty: str):
     """Return (low, high) inclusive range for a given difficulty."""
     if difficulty == "Easy":
@@ -8,14 +9,22 @@ def get_range_for_difficulty(difficulty: str):
         return 1, 200
     return 1, 100
 
-
-def parse_guess(raw: str):
+# FIX - Claude moved parse_guess from app.py to logic_utils.py and added handling for empty input and decimal input, which were previously unhandled edge cases that caused crashes or unintended behavior.
+def parse_guess(raw: str | None):
     """
     Parse user input into an int guess.
 
     Returns: (ok: bool, guess_int: int | None, error_message: str | None)
     """
-    raise NotImplementedError("Refactor this function from app.py into logic_utils.py")
+    if raw is None or raw == "":
+        return False, None, "Enter a guess."
+    if "." in raw:
+        return False, None, "Whole numbers only. No decimals allowed."
+    try:
+        value = int(raw)
+    except Exception:
+        return False, None, "That is not a number."
+    return True, value, None
 
 # FIX - Claude moved the check_guess function from app.py to logic_utils.py and fixed the high/low bug and also fixed a TypeError bug that occurred when the secret was a string.
 def check_guess(guess, secret):

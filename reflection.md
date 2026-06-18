@@ -17,14 +17,14 @@ Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior | Actual Behavior | Console Output / Error | Resolved? | Test? |
 |-------|-------------------|-----------------|------------------------|-----------|-------|
-| Dificulty change | New Game | Game State stays the same | None | ◼️ | ◼️ |
+| Dificulty change | New Game | Game State stays the same | None | ✅ | ✅ - Manual Test |
 | Any user input above or below the secret | If input is below, the hint should be "Go higher" vice versa if input is above, the hint should be "Go lower" | If input is below, the hint is "Go lower" vice versa if input is above, the hint is "Go higher" | None | ✅ | ✅ - pytest |
 | Number of attempts | The attempts should reflect the same amount of attempts as listed in the difficulty information | The actual attempts after testing are lower than the listed attempts by exactly 1 | None | ✅ | ✅ - Manual Test |
-| String as user input | Do not use an attempt, give error feedback. | Uses up an attempt, gives error feedback | None | ◼️ | ◼️ |
-| 45.7 as user input when secret is 45 | Do not use attempt, give error feedback | Correct guess, game completed | None | ◼️ | ◼️ |
-| New game Button press when state is "Game Over" or "Game Won" | Reset state to "New Game", give feedback that new game has started | Does not reset state, and gives no feedback | None | ◼️ | ◼️ |
-| No input when pressing submit guess | Do not use attempt, give error feedback | Uses attempt, gives error feedback | None | ◼️ | ◼️ |
-| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None | ◼️ | ◼️ |
+| String as user input | Do not use an attempt, give error feedback. | Uses up an attempt, gives error feedback | None | ✅ | ✅ - pytest |
+| 45.7 as user input when secret is 45 | Do not use attempt, give error feedback | Correct guess, game completed | None | ✅ | ✅ - pytest |
+| New game Button press when state is "Game Over" or "Game Won" | Reset state to "New Game", give feedback that new game has started | Does not reset state, and gives no feedback | None | ✅ | ✅ - Manual Test |
+| No input when pressing submit guess | Do not use attempt, give error feedback | Uses attempt, gives error feedback | None | ✅ | ✅ - Manual Test |
+| Submiting a guess with "Show Hint" unchecked and input != secret | Give user feedback that a guess was incorrect | Does not give any feedback | None | N/A | N/A |
 | Difficulty Balance | The scale of difficulty should increase in contrast to the level, easy -> normal -> hard | The normal difficulty is harder than the hard difficulty seeing as the amount of numbers guessable are double | None | ✅ | ✅ - Manual Test |
 | Submiting a guess | Score correctly updates | The score seems to randomly add points or subtract points, and can even go negative. | None | ✅ | ✅ - pytest |
 
@@ -56,7 +56,7 @@ Document at least 3 bugs you found. Add rows as needed.
 ## 4. What did you learn about Streamlit and state?
 
 - How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-  - Answer.
+  - Streamlit uses a web page to show users a UI, when a user clicks a button or types in an input, in order to update other elements of the page, we use the session_state and rerun() to give the UI that user feedback, otherwise the elements would not update and you would have a static web page with no user interactions. session_state is where the variables that we want to show up dynamically are stored between reruns, and rerun() is the method for refreshing those variables, without rerun() the score for our game would always show up as whatever the initial value was instead of the new value after user feedback.
 
 ---
 
@@ -64,11 +64,11 @@ Document at least 3 bugs you found. Add rows as needed.
 
 - What is one habit or strategy from this project that you want to reuse in future labs or projects?
   - This could be a testing habit, a prompting strategy, or a way you used Git.
-    - Answer.
+    - One habit I would like to reuse in future projects is making use of pytest and making repeatable logic tests for functions to make sure edge cases and bad inputs are handled properly after refactors.
 - What is one thing you would do differently next time you work with AI on a coding task?
-  - Answer.
+  - I relied on Claude implementing most of the changes in this project, based on the instructions. For future projects I would like to be the one implementing the changes, and use AI as guidance rather than having it write most of the fixes for me.
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
-  - Answer.
+  - This project changed the way I think about AI generated code by showing me that AI cannot catch all the bugs in one run through or prompt, it will take testing and manual review to properly implement the fixes that AI writes, and AI can't always see the UI or user experience, so it takes some human input to properly guide the AI to helping implement the correct changes and fixes. There were multiple times in this project that it took multiple prompts to fix a single bug, especially when it came to the UI and state based bugs.
 
 ## Reflect & Transparancy: All prompts that were used in this project:
 
@@ -83,4 +83,5 @@ Document at least 3 bugs you found. Add rows as needed.
 | "Refactor update_score to logic_utils.py and update the import on app.py" | Claude successfully moved update_score to logic_utils and added the correct import. | I manually reviewed the changes and there were no issues with the refactor or the import after re-running the app and testing in browser. |
 | "I'd like to discuss how scoring works in this guessing game, I think it's appropriate to reset the score on a new game, but I'm not sure how the original score concept is supposed to work in this game, because in the code I was given to fix, there is not only a purposely made glitch, but also the score can go negative, which doesn't make much sense. What would you suggest for the scoring system in this guessing game?" | Claude suggests removing the even/odd glitch, and the off-by-one glitch to start, and removing the seperate penalties for wrong guesses. Then claude suggested rewriting the score to be essentially ```<points = max(10, 100 - 10 * (attempt_number - 1))>``` in order to keep the score from becomming negative and making the score represent how many attempts it took to guess the correct number. | Start of discussion, no changes were made. |
 | "Another thing to note is that the score should still update after each guess, so maybe we could get rid of the outcome logic block to just return a current score each time?" | Claude made a plan for the implementation of the new score logic, and wrote pytest tests for the update_score function. I reviewed the plan, and allowed Claude to implement the changes after verifying that the logic was correct. | I made suggestions to Claude and manually reviewed the core logic and tests that were implemented, making sure the logic was correct and that the tests made sense for the function. All tests passed and the game now correctly scores for each game. |
-| "" | result | notes |
+| "I've made some comments on bugs I have found in the submit button logic. Plan fixes for these bugs so that our submit button works properly. " | Claude made a plan markdown and I reviewed the changes. The parse_guess function was moved to logic_utils and added handling of decimal input. The submit function was refactored to parse guesses before incrementing attempts, and added a missing streamlit rerun() function to properly update the UI. I also prompted Claude to add pytests for parse_guess and it came up with 5 tests to make sure error guesses were handled properly. | All changes were manually reviewed. Changes were implemented, and upon manual testing I ran into UI bugs where there was no longer any user feedback. |
+| "I am running into a bug in the actual game where there is no feedback showing up for the user at all. The win condition is the only thing with feedback, and it doesn't give the proper balloons or won/score feedback, it only shows "You already won. Start a new game to play again."" | Claude properly found the state bug with streamlit rerun() where the UI would update for about a millisecond before rerun() resets the UI, so Claude came up with a feedback session_state variable and feedback UI function to apply feedback after a rerun() state update. | I manually reviewed all changes before implementation, and manually tested the game to verify the functionality of the feedback variable and function. The game now properly updates state and gives user feedback. |

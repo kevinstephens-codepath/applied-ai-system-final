@@ -1,25 +1,6 @@
 import random
 import streamlit as st
-from logic_utils import check_guess, get_range_for_difficulty, update_score
-
-
-# FIX THIS - The guess parsing should be in logic_utils.py
-def parse_guess(raw: str):
-    if raw is None:
-        return False, None, "Enter a guess."
-
-    if raw == "":
-        return False, None, "Enter a guess."
-    # FIX THIS - We should not allow decimal guesses. The game depends on whole numbers.
-    try:
-        if "." in raw:
-            value = int(float(raw))
-        else:
-            value = int(raw)
-    except Exception:
-        return False, None, "That is not a number."
-
-    return True, value, None
+from logic_utils import check_guess, get_range_for_difficulty, parse_guess, update_score
 
 
 
@@ -64,6 +45,9 @@ if "status" not in st.session_state:
 
 if "history" not in st.session_state:
     st.session_state.history = []
+
+if "feedback" not in st.session_state:
+    st.session_state.feedback = None
 
 # FIX - Fix suggested by Claude: Changing the difficulty will now cause a state update to reset the game so users don't end up with the wrong range or attempts when selecting a different difficulty
 if st.session_state.get("difficulty") != difficulty:
@@ -112,60 +96,71 @@ if new_game:
     # FIX - The secret number now reflects the difficulty level when starting a new game using low and high.
     st.session_state.secret = random.randint(low, high)
     # FIX - Claude helped me find a state bug with setting the status to "playing" on new game, which was causing the game to not properly reset after winning or losing.
-    st.session_state.status = "playing";
+    st.session_state.status = "playing"
+    st.session_state.feedback = None
     st.success("New game started.")
     st.rerun()
 
-# FIX THIS - The game does not properly handle the case where the player has already won or lost.
+feedback_shown = False
+if st.session_state.feedback:
+    fb = st.session_state.feedback
+    st.session_state.feedback = None
+    feedback_shown = True
+    if fb["type"] == "hint":
+        st.warning(fb["message"])
+    elif fb["type"] == "win":
+        st.balloons()
+        st.success(fb["message"])
+    elif fb["type"] == "lost":
+        st.error(fb["message"])
+    elif fb["type"] == "error":
+        st.error(fb["message"])
+
 if st.session_state.status != "playing":
-    if st.session_state.status == "won":
-        st.success("You already won. Start a new game to play again.")
-    else:
-        st.error("Game over. Start a new game to try again.")
+    if not feedback_shown:
+        if st.session_state.status == "won":
+            st.success("You already won. Start a new game to play again.")
+        else:
+            st.error("Game over. Start a new game to try again.")
     st.stop()
 
-# FIX THIS - Need to rerun() after submitting a guess to update the UI with the new state, otherwise the user won't see the results of their guess until they interact with the app in a different way.
+# FIX - Claude implemented fixes for the bugs in incrementing attempts and also changed the feedback system to use session state instead of immediate feedback, which was causing issues with the flow of the game and the display of messages. The new system allows for better control over when feedback is shown to the user.
 if submit:
-    # FIX THIS - We should parse the guess before incrementing attempts, otherwise invalid guesses are penalized.
-    st.session_state.attempts += 1
-
     ok, guess_int, err = parse_guess(raw_guess)
 
     if not ok:
         st.session_state.history.append(raw_guess)
-        st.error(err)
+        st.session_state.feedback = {"type": "error", "message": err}
     else:
+        st.session_state.attempts += 1
         st.session_state.history.append(guess_int)
 
-        # FIX THIS - This appears to be a purpose made glitch where the secret is sometimes a string and sometimes an int depending on the attemtps.
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
-
-        outcome, message = check_guess(guess_int, secret)
-
-        # FIX THIS - There should be feedback even if hint is not enabled, otherwise the user has no other feedback to show that it was a successful guess.
-        if show_hint:
-            st.warning(message)
-
+        outcome, message = check_guess(guess_int, st.session_state.secret)
         st.session_state.score = update_score(attempt_number=st.session_state.attempts)
 
         if outcome == "Win":
-            st.balloons()
             st.session_state.status = "won"
-            st.success(
-                f"You won! The secret was {st.session_state.secret}. "
-                f"Final score: {st.session_state.score}"
-            )
+            st.session_state.feedback = {
+                "type": "win",
+                "message": (
+                    f"You won! The secret was {st.session_state.secret}. "
+                    f"Final score: {st.session_state.score}"
+                ),
+            }
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"
-                st.error(
-                    f"Out of attempts! "
-                    f"The secret was {st.session_state.secret}. "
-                    f"Score: {st.session_state.score}"
-                )
+                st.session_state.feedback = {
+                    "type": "lost",
+                    "message": (
+                        f"Out of attempts! The secret was {st.session_state.secret}. "
+                        f"Score: {st.session_state.score}"
+                    ),
+                }
+            else:
+                st.session_state.feedback = {"type": "hint", "message": message}
+
+    st.rerun()
 
 st.divider()
 # Updated the caption to reflect changes made to the game.
