@@ -1,5 +1,6 @@
 import random
 import streamlit as st
+from analyzer_ui import render_bug_analyzer
 from logic_utils import check_guess, get_range_for_difficulty, parse_guess, update_score
 
 
@@ -8,6 +9,8 @@ st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
 st.title("🎮 Game Glitch Investigator")
 st.caption("An AI-generated guessing game. Something is off.")
+
+mode = st.sidebar.radio("Mode", ["Play the game", "Bug Analyzer"])
 
 st.sidebar.header("Settings")
 
@@ -29,6 +32,12 @@ low, high = get_range_for_difficulty(difficulty)
 
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
+
+# The analyzer runs here, after the sidebar widgets (so the difficulty choice survives switching modes)
+# and before the game body (which calls st.stop() once a game is won or lost).
+if mode == "Bug Analyzer":
+    render_bug_analyzer()
+    st.stop()
 
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)

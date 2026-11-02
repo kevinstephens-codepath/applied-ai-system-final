@@ -17,6 +17,7 @@ pip-wheel-metadata/
 .env
 .env.*
 *.env
+!example.env
 
 # Streamlit
 .streamlit/secrets.toml
@@ -41,3 +42,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Analyzer request logs
+logs/

@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="960" viewBox="0 0 960 960" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b91c1c"/>
+    </marker>
+  </defs>
+  <rect width="960" height="960" fill="#ffffff"/>
+  <text x="480" y="22" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">Game Glitch Investigator: RAG bug analyzer</text>
+
+  <!-- main pipeline -->
+  <g stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+    <path d="M460,94 V130"/>
+    <path d="M460,194 V240"/>
+    <path d="M460,304 V350"/>
+    <path d="M460,460 V520"/>
+    <path d="M460,584 V620"/>
+    <path d="M460,684 V720"/>
+  </g>
+
+  <g font-size="15" font-weight="bold" fill="#0f172a">
+    <rect x="300" y="30" width="320" height="64" rx="8" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+    <text x="460" y="57" text-anchor="middle">User bug report</text>
+    <text x="460" y="77" text-anchor="middle" font-size="12" font-weight="normal">Streamlit "Bug Analyzer" mode (analyzer_ui.py)</text>
+
+    <rect x="300" y="130" width="320" height="64" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+    <text x="460" y="157" text-anchor="middle">1. Input guardrail</text>
+    <text x="460" y="177" text-anchor="middle" font-size="12" font-weight="normal">guardrails.validate_input</text>
+
+    <rect x="300" y="240" width="320" height="64" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="1.5"/>
+    <text x="460" y="267" text-anchor="middle">2. Retriever (BM25)</text>
+    <text x="460" y="287" text-anchor="middle" font-size="12" font-weight="normal">rag_retriever.py: top-k chunks + scores</text>
+
+    <rect x="300" y="350" width="320" height="110" rx="8" fill="#ede9fe" stroke="#6d28d9" stroke-width="1.5"/>
+    <text x="460" y="377" text-anchor="middle">3. Agent loop (max 6 turns)</text>
+    <text x="460" y="397" text-anchor="middle" font-size="12" font-weight="normal">debug_agent.py + Gemini (google-genai)</text>
+    <text x="460" y="417" text-anchor="middle" font-size="12" font-weight="normal">context = top-k chunks + report</text>
+    <text x="460" y="437" text-anchor="middle" font-size="12" font-weight="normal">each turn: one tool call, or final answer (JSON)</text>
+
+    <rect x="300" y="520" width="320" height="64" rx="8" fill="#fef9c3" stroke="#a16207" stroke-width="1.5"/>
+    <text x="460" y="547" text-anchor="middle">4. Output guardrail</text>
+    <text x="460" y="567" text-anchor="middle" font-size="12" font-weight="normal">guardrails.check_output: valid citations only</text>
+
+    <rect x="300" y="620" width="320" height="64" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="1.5"/>
+    <text x="460" y="647" text-anchor="middle">5. Debug score (0-100)</text>
+    <text x="460" y="667" text-anchor="middle" font-size="12" font-weight="normal">scoring.py: High / Medium / Low</text>
+
+    <rect x="300" y="720" width="320" height="64" rx="8" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+    <text x="460" y="747" text-anchor="middle">6. Formatted response + log</text>
+    <text x="460" y="767" text-anchor="middle" font-size="12" font-weight="normal">answer, sources, score  |  logs/analyzer.jsonl</text>
+  </g>
+
+  <!-- refusal paths (left) -->
+  <g stroke="#b91c1c" stroke-width="1.5" fill="none" marker-end="url(#arrowRed)">
+    <path d="M300,162 H260"/>
+    <path d="M300,272 H260"/>
+    <path d="M300,382 H260"/>
+    <path d="M300,552 H260"/>
+  </g>
+  <g font-size="13" font-weight="bold" fill="#7f1d1d">
+    <rect x="20" y="130" width="240" height="64" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="140" y="156" text-anchor="middle">Rejected</text>
+    <text x="140" y="174" text-anchor="middle" font-size="11" font-weight="normal">empty, too short, gibberish, injection</text>
+
+    <rect x="20" y="240" width="240" height="64" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="140" y="266" text-anchor="middle">No context</text>
+    <text x="140" y="284" text-anchor="middle" font-size="11" font-weight="normal">refuse, no LLM call</text>
+
+    <rect x="20" y="350" width="240" height="64" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="140" y="376" text-anchor="middle">LLM error / unfinished</text>
+    <text x="140" y="394" text-anchor="middle" font-size="11" font-weight="normal">quota, bad JSON, turn limit: show closest docs</text>
+
+    <rect x="20" y="520" width="240" height="64" rx="8" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="140" y="546" text-anchor="middle">Refused answer</text>
+    <text x="140" y="564" text-anchor="middle" font-size="11" font-weight="normal">malformed or uncited: "not enough information"</text>
+  </g>
+  <text x="140" y="640" text-anchor="middle" font-size="11" fill="#475569">A Low score band adds a</text>
+  <text x="140" y="656" text-anchor="middle" font-size="11" fill="#475569">"low confidence" caveat to the answer.</text>
+
+  <!-- knowledge base and tools (right) -->
+  <g stroke="#475569" stroke-width="1.5" fill="none">
+    <path d="M660,272 H620" marker-end="url(#arrow)"/>
+    <path d="M620,405 H660" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  </g>
+  <g font-size="14" font-weight="bold" fill="#0f172a">
+    <rect x="660" y="226" width="280" height="92" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+    <text x="800" y="250" text-anchor="middle">Knowledge base (docs/)</text>
+    <text x="800" y="272" text-anchor="middle" font-size="12" font-weight="normal">GAME_SPEC.md (rules R-*)</text>
+    <text x="800" y="290" text-anchor="middle" font-size="12" font-weight="normal">KNOWN_BUGS.md (bugs B-*)</text>
+    <text x="800" y="308" text-anchor="middle" font-size="12" font-weight="normal">STREAMLIT_NOTES.md (S-*)</text>
+
+    <rect x="660" y="336" width="280" height="138" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+    <text x="800" y="360" text-anchor="middle">Sandboxed tools (agent_tools.py)</text>
+    <text x="800" y="382" text-anchor="middle" font-size="12" font-weight="normal">read_file / list_files (project folder only)</text>
+    <text x="800" y="400" text-anchor="middle" font-size="12" font-weight="normal">run_repro (4 game functions)</text>
+    <text x="800" y="418" text-anchor="middle" font-size="12" font-weight="normal">run_pytest (tests/ only, no shell)</text>
+    <text x="800" y="440" text-anchor="middle" font-size="11" font-weight="normal">per-request budgets; .env, .git, .venv blocked</text>
+    <text x="800" y="458" text-anchor="middle" font-size="11" font-weight="normal">results are untrusted data to the model</text>
+  </g>
+
+  <!-- score inputs -->
+  <g font-size="12" fill="#334155">
+    <text x="660" y="640" font-weight="bold" font-size="13" fill="#0f172a">Score components (checked in code)</text>
+    <text x="660" y="662">retrieval 30  citations 20  reproduction 20</text>
+    <text x="660" y="680">code evidence 20  tests passing 10</text>
+    <text x="660" y="702">High &gt;= 75   Medium 50-74   Low &lt; 50</text>
+  </g>
+</svg>
